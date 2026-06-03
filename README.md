@@ -90,4 +90,4 @@ frame_and_caption/
 
 ## License
 
-MIT
+GPL-V3
