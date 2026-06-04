@@ -1,9 +1,24 @@
+import re
 from tkinter import colorchooser
 
 import customtkinter as ctk
 
 
 GRADIENT_DIRECTIONS = ["horizontal", "vertical", "diagonal", "anti-diagonal", "radial"]
+
+_HEX_PATTERN = re.compile(r"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$")
+
+
+def _normalise_hex(raw: str) -> str:
+    """Return full 6-digit hex from short or long form, or empty string if invalid."""
+    raw = raw.strip()
+    m = _HEX_PATTERN.match(raw)
+    if not m:
+        return ""
+    digits = m.group(1)
+    if len(digits) == 3:
+        digits = "".join(c * 2 for c in digits)
+    return "#" + digits.lower()
 
 
 class FramePanel(ctk.CTkFrame):
@@ -36,8 +51,11 @@ class FramePanel(ctk.CTkFrame):
             height=28, width=100
         )
         self._color_btn.pack(side="left", padx=(8, 0))
-        self._color_label = ctk.CTkLabel(self._solid_color_row, text=self._current_color)
-        self._color_label.pack(side="left", padx=8)
+        self._color_entry = ctk.CTkEntry(self._solid_color_row, width=70, placeholder_text="#rrggbb")
+        self._color_entry.insert(0, self._current_color)
+        self._color_entry.bind("<KeyRelease>", lambda e: self._on_hex_entry("color"))
+        self._color_entry.bind("<FocusOut>", lambda e: self._on_hex_entry("color"))
+        self._color_entry.pack(side="left", padx=8)
 
         self._gradient_row = ctk.CTkFrame(self, fg_color="transparent")
 
@@ -51,8 +69,11 @@ class FramePanel(ctk.CTkFrame):
             height=28, width=100
         )
         self._color2_btn.pack(side="left", padx=(8, 0))
-        self._color2_label = ctk.CTkLabel(self._gradient_row, text=self._current_color2)
-        self._color2_label.pack(side="left", padx=8)
+        self._color2_entry = ctk.CTkEntry(self._gradient_row, width=70, placeholder_text="#rrggbb")
+        self._color2_entry.insert(0, self._current_color2)
+        self._color2_entry.bind("<KeyRelease>", lambda e: self._on_hex_entry("color2"))
+        self._color2_entry.bind("<FocusOut>", lambda e: self._on_hex_entry("color2"))
+        self._color2_entry.pack(side="left", padx=8)
 
         self._direction_label = ctk.CTkLabel(self, text="Gradient Direction:", font=ctk.CTkFont(size=11))
         self._direction_menu = ctk.CTkOptionMenu(
@@ -108,7 +129,8 @@ class FramePanel(ctk.CTkFrame):
         if result and result[1]:
             self._current_color = result[1]
             self._color_swatch.configure(fg_color=self._current_color)
-            self._color_label.configure(text=self._current_color)
+            self._color_entry.delete(0, "end")
+            self._color_entry.insert(0, self._current_color)
             self._notify()
 
     def _pick_color2(self):
@@ -116,7 +138,26 @@ class FramePanel(ctk.CTkFrame):
         if result and result[1]:
             self._current_color2 = result[1]
             self._color2_swatch.configure(fg_color=self._current_color2)
-            self._color2_label.configure(text=self._current_color2)
+            self._color2_entry.delete(0, "end")
+            self._color2_entry.insert(0, self._current_color2)
+            self._notify()
+
+    def _on_hex_entry(self, which):
+        entry = self._color_entry if which == "color" else self._color2_entry
+        swatch = self._color_swatch if which == "color" else self._color2_swatch
+        attr = "_current_color" if which == "color" else "_current_color2"
+
+        raw = entry.get().strip()
+        if raw == "":
+            return
+
+        normalised = _normalise_hex(raw)
+        if normalised:
+            setattr(self, attr, normalised)
+            swatch.configure(fg_color=normalised)
+            if entry.get() != normalised:
+                entry.delete(0, "end")
+                entry.insert(0, normalised)
             self._notify()
 
     def _notify(self):
@@ -153,7 +194,8 @@ class FramePanel(ctk.CTkFrame):
                    gradient_direction="horizontal"):
         self._current_color = color
         self._color_swatch.configure(fg_color=color)
-        self._color_label.configure(text=color)
+        self._color_entry.delete(0, "end")
+        self._color_entry.insert(0, color)
         self._thickness_entry.delete(0, "end")
         self._thickness_entry.insert(0, str(thickness))
         self._headline_entry.delete(0, "end")
@@ -165,7 +207,8 @@ class FramePanel(ctk.CTkFrame):
 
         self._current_color2 = gradient_color2
         self._color2_swatch.configure(fg_color=gradient_color2)
-        self._color2_label.configure(text=gradient_color2)
+        self._color2_entry.delete(0, "end")
+        self._color2_entry.insert(0, gradient_color2)
         self._direction_menu.set(gradient_direction)
 
         self._gradient_enabled = gradient_enabled
