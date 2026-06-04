@@ -9,18 +9,15 @@ from openai import OpenAI
 
 from .config import APIConfig
 
-_MAX_IMAGE_SIZE = 1024
-
 StreamCallback = Callable[[str, str], None]
 
 
-def _encode_image(image_data: bytes, max_size: int = _MAX_IMAGE_SIZE) -> str:
+def _encode_image(image_data: bytes) -> str:
     from PIL import Image
 
     img = Image.open(io.BytesIO(image_data))
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
-    img.thumbnail((max_size, max_size), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=85)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
