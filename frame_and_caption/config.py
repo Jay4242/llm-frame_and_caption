@@ -15,6 +15,15 @@ class APIConfig:
 
 
 @dataclass
+class FaceEntry:
+    name: str = ""
+    x1: int = 0
+    y1: int = 0
+    x2: int = 0
+    y2: int = 0
+
+
+@dataclass
 class FrameConfig:
     color: str = "#1a1a2e"
     thickness: int = 80
@@ -32,6 +41,8 @@ class Config:
     frame: FrameConfig = field(default_factory=FrameConfig)
     prompt: str = (
         "You are a helpful assistant. "
+        "If you were previously shown named images of people and you identify them in this image, "
+        "you may refer to them by name in the caption if it feels natural. "
         "Describe this image concisely in a single, brief, engaging caption. "
         'Respond with a JSON object containing a single key "Caption" with your caption text. '
         "Do not output anything else."
