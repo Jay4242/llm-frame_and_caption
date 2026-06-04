@@ -23,8 +23,9 @@ class PromptPanel(ctk.CTkFrame):
         self._text.insert(
             "1.0",
             "You are a helpful assistant. "
-            "Describe this image concisely in a brief, engaging caption. "
-            "Respond with a JSON object containing a single key 'Caption' with your caption text.",
+            "Describe this image concisely in a single, brief, engaging caption. "
+            'Respond with a JSON object containing a single key "Caption" with your caption text. '
+            "Do not output anything else.",
         )
 
     def get_prompt(self) -> str:
