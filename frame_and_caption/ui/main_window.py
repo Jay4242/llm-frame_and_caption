@@ -7,10 +7,12 @@ import customtkinter as ctk
 from PIL import Image
 
 from ..api_client import generate_caption
-from ..config import Config, FrameConfig, APIConfig, load_config, save_config
+from ..config import Config, FrameConfig, APIConfig, FaceEntry, load_config, save_config
 from ..image_processor import add_frame_and_caption
 from .api_panel import APIPanel
 from .drop_zone import DropZone
+from .face_panel import FacePanel
+from .face_selector import FaceSelector
 from .frame_panel import FramePanel
 from .prompt_panel import PromptPanel
 
@@ -27,6 +29,8 @@ class MainWindow:
         self._caption = ""
         self._preview_pil = None
         self._preview_after_id = None
+        self._faces: list[FaceEntry] = []
+        self._show_faces = False
 
         self._build_ui()
         self._apply_config()
@@ -58,6 +62,13 @@ class MainWindow:
 
         self._prompt_panel = PromptPanel(self._left_panel)
         self._prompt_panel.pack(fill="x", pady=(0, 4))
+
+        self._face_panel = FacePanel(
+            self._left_panel,
+            on_add_face=lambda: self._set_face_mode(True),
+            on_delete_face=self._on_delete_face,
+        )
+        self._face_panel.pack(fill="x", pady=(0, 4))
 
         self._generate_btn = ctk.CTkButton(
             self._left_panel,
@@ -92,14 +103,36 @@ class MainWindow:
         )
         self._save_btn.pack(fill="x", padx=8, pady=(0, 8))
 
-        self._preview_frame = ctk.CTkFrame(self.root, fg_color="gray10")
-        self._preview_frame.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
+        self._right_frame = ctk.CTkFrame(self.root, fg_color="gray10")
+        self._right_frame.grid(row=0, column=1, sticky="nsew", padx=(4, 8), pady=8)
+        self._right_frame.grid_rowconfigure(1, weight=1)
+        self._right_frame.grid_columnconfigure(0, weight=1)
+
+        self._mode_bar = ctk.CTkFrame(self._right_frame, fg_color="transparent")
+        self._mode_bar.grid(row=0, column=0, sticky="ew", padx=4, pady=(4, 0))
+
+        self._seg_btn = ctk.CTkSegmentedButton(
+            self._mode_bar,
+            values=["Preview", "Faces"],
+            command=self._on_mode_changed,
+        )
+        self._seg_btn.pack(side="left", padx=2)
+        self._seg_btn.set("Preview")
+
+        self._preview_frame = ctk.CTkFrame(self._right_frame, fg_color="gray10")
+        self._preview_frame.grid(row=1, column=0, sticky="nsew")
         self._preview_frame.grid_rowconfigure(0, weight=1)
         self._preview_frame.grid_columnconfigure(0, weight=1)
 
         self._preview_label = ctk.CTkLabel(self._preview_frame, text="No image selected", font=ctk.CTkFont(size=14))
         self._preview_label.grid(row=0, column=0, sticky="nsew", padx=16, pady=16)
         self._preview_frame.bind("<Configure>", self._on_preview_resize)
+
+        self._face_selector = FaceSelector(
+            self._right_frame, on_faces_changed=self._on_faces_changed,
+        )
+        self._face_selector.grid(row=1, column=0, sticky="nsew")
+        self._face_selector.grid_remove()
 
         self._status_bar = ctk.CTkLabel(
             self.root, text="Ready", anchor="w",
@@ -121,6 +154,9 @@ class MainWindow:
     def _on_image_selected(self, path):
         self._image_path = path
         self._caption = ""
+        self._faces = []
+        self._face_panel.update_faces([])
+        self._face_selector.set_image(path)
         self._caption_textbox.configure(state="normal")
         self._caption_textbox.delete("0.0", "end")
         self._caption_textbox.insert("0.0", "Caption will appear here after generation...")
@@ -208,7 +244,8 @@ class MainWindow:
         def _thread():
             try:
                 caption = generate_caption(
-                    self._image_path, prompt, api_config, on_stream=_on_stream
+                    self._image_path, prompt, api_config,
+                    on_stream=_on_stream, faces=self._faces if self._faces else None,
                 )
                 self.root.after(0, lambda: self._on_caption_ready(caption))
             except Exception as e:
@@ -303,6 +340,29 @@ class MainWindow:
     def _on_test_error(self, error_msg):
         self._api_panel.set_test_button_state(True)
         self._set_status(f"Connection error: {error_msg}")
+
+    def _on_mode_changed(self, value):
+        self._set_face_mode(value == "Faces", from_btn=True)
+
+    def _set_face_mode(self, active: bool, from_btn: bool = False):
+        self._show_faces = active
+        if active:
+            self._preview_frame.grid_remove()
+            self._face_selector.grid(row=1, column=0, sticky="nsew")
+            if not from_btn:
+                self._seg_btn.set("Faces")
+        else:
+            self._face_selector.grid_remove()
+            self._preview_frame.grid()
+            if not from_btn:
+                self._seg_btn.set("Preview")
+
+    def _on_faces_changed(self, faces):
+        self._faces = list(faces)
+        self._face_panel.update_faces(self._faces)
+
+    def _on_delete_face(self, face):
+        self._face_selector.remove_face(face)
 
     def _on_close(self):
         self._save_config()
