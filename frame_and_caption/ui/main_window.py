@@ -97,6 +97,7 @@ class MainWindow:
         self._api_panel.set_values(c.api.base_url, c.api.api_key, c.api.model)
         self._frame_panel.set_values(
             c.frame.color, c.frame.thickness, c.frame.headline, c.frame.font_size,
+            c.frame.caption_font_size,
             c.frame.gradient_enabled, c.frame.gradient_color2, c.frame.gradient_direction
         )
         self._prompt_panel.set_prompt(c.prompt)
@@ -118,6 +119,7 @@ class MainWindow:
             thickness=frame_vals["thickness"],
             headline=frame_vals["headline"],
             font_size=frame_vals["font_size"],
+            caption_font_size=frame_vals["caption_font_size"],
             gradient_enabled=frame_vals["gradient_enabled"],
             gradient_color2=frame_vals["gradient_color2"],
             gradient_direction=frame_vals["gradient_direction"],
@@ -225,6 +227,7 @@ class MainWindow:
             thickness=frame_vals["thickness"],
             headline=frame_vals["headline"],
             font_size=frame_vals["font_size"],
+            caption_font_size=frame_vals["caption_font_size"],
             gradient_enabled=frame_vals["gradient_enabled"],
             gradient_color2=frame_vals["gradient_color2"],
             gradient_direction=frame_vals["gradient_direction"],
@@ -282,6 +285,7 @@ class MainWindow:
         self._config.frame.thickness = frame_vals["thickness"]
         self._config.frame.headline = frame_vals["headline"]
         self._config.frame.font_size = frame_vals["font_size"]
+        self._config.frame.caption_font_size = frame_vals["caption_font_size"]
         self._config.frame.gradient_enabled = frame_vals["gradient_enabled"]
         self._config.frame.gradient_color2 = frame_vals["gradient_color2"]
         self._config.frame.gradient_direction = frame_vals["gradient_direction"]
