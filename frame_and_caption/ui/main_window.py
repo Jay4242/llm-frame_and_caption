@@ -26,6 +26,7 @@ class MainWindow:
         self._image_path = None
         self._caption = ""
         self._preview_pil = None
+        self._preview_after_id = None
 
         self._build_ui()
         self._apply_config()
@@ -67,6 +68,21 @@ class MainWindow:
         )
         self._generate_btn.pack(fill="x", padx=8, pady=(0, 4))
 
+        self._caption_label = ctk.CTkLabel(
+            self._left_panel, text="Caption (editable)",
+            font=ctk.CTkFont(size=12),
+            anchor="w",
+        )
+        self._caption_label.pack(fill="x", padx=8, pady=(0, 2))
+
+        self._caption_textbox = ctk.CTkTextbox(
+            self._left_panel, height=120, font=ctk.CTkFont(size=13),
+            wrap="word", state="disabled",
+        )
+        self._caption_textbox.pack(fill="x", padx=8, pady=(0, 4))
+        self._caption_textbox.insert("0.0", "Caption will appear here after generation...")
+        self._caption_textbox.bind("<KeyRelease>", self._on_caption_edited)
+
         self._save_btn = ctk.CTkButton(
             self._left_panel,
             text="Save Framed Image",
@@ -105,6 +121,10 @@ class MainWindow:
     def _on_image_selected(self, path):
         self._image_path = path
         self._caption = ""
+        self._caption_textbox.configure(state="normal")
+        self._caption_textbox.delete("0.0", "end")
+        self._caption_textbox.insert("0.0", "Caption will appear here after generation...")
+        self._caption_textbox.configure(state="disabled")
         self._save_btn.configure(state="disabled")
         self._refresh_preview()
         self._set_status(f"Loaded: {Path(path).name}")
@@ -198,6 +218,9 @@ class MainWindow:
 
     def _on_caption_ready(self, caption):
         self._caption = caption
+        self._caption_textbox.configure(state="normal")
+        self._caption_textbox.delete("0.0", "end")
+        self._caption_textbox.insert("0.0", caption)
         self._generate_btn.configure(state="normal", text="Generate Caption")
         self._save_btn.configure(state="normal")
         self._refresh_preview()
@@ -206,6 +229,16 @@ class MainWindow:
     def _on_caption_error(self, error_msg):
         self._generate_btn.configure(state="normal", text="Generate Caption")
         self._set_status(f"Error: {error_msg}")
+
+    def _on_caption_edited(self, event=None):
+        self._caption = self._caption_textbox.get("0.0", "end").strip()
+        if self._preview_after_id is not None:
+            self.root.after_cancel(self._preview_after_id)
+        self._preview_after_id = self.root.after(400, self._debounced_preview)
+
+    def _debounced_preview(self):
+        self._preview_after_id = None
+        self._refresh_preview()
 
     def _on_save(self):
         if not self._image_path:
