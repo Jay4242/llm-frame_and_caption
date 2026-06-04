@@ -53,6 +53,7 @@ class FramePanel(ctk.CTkFrame):
         self._color_btn.pack(side="left", padx=(8, 0))
         self._color_entry = ctk.CTkEntry(self._solid_color_row, width=70, placeholder_text="#rrggbb")
         self._color_entry.insert(0, self._current_color)
+        self._color_entry.bind("<<Paste>>", lambda e: self._on_paste("color"))
         self._color_entry.bind("<KeyRelease>", lambda e: self._on_hex_entry("color"))
         self._color_entry.bind("<FocusOut>", lambda e: self._on_hex_entry("color"))
         self._color_entry.pack(side="left", padx=8)
@@ -71,6 +72,7 @@ class FramePanel(ctk.CTkFrame):
         self._color2_btn.pack(side="left", padx=(8, 0))
         self._color2_entry = ctk.CTkEntry(self._gradient_row, width=70, placeholder_text="#rrggbb")
         self._color2_entry.insert(0, self._current_color2)
+        self._color2_entry.bind("<<Paste>>", lambda e: self._on_paste("color2"))
         self._color2_entry.bind("<KeyRelease>", lambda e: self._on_hex_entry("color2"))
         self._color2_entry.bind("<FocusOut>", lambda e: self._on_hex_entry("color2"))
         self._color2_entry.pack(side="left", padx=8)
@@ -141,6 +143,11 @@ class FramePanel(ctk.CTkFrame):
             self._color2_entry.delete(0, "end")
             self._color2_entry.insert(0, self._current_color2)
             self._notify()
+
+    def _on_paste(self, which):
+        entry = self._color_entry if which == "color" else self._color2_entry
+        entry.delete(0, "end")
+        entry.after_idle(lambda: self._on_hex_entry(which))
 
     def _on_hex_entry(self, which):
         entry = self._color_entry if which == "color" else self._color2_entry
