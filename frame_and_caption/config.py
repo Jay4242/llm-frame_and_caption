@@ -30,7 +30,12 @@ class FrameConfig:
 class Config:
     api: APIConfig = field(default_factory=APIConfig)
     frame: FrameConfig = field(default_factory=FrameConfig)
-    prompt: str = "You are a helpful assistant. Describe this image concisely in a brief, engaging caption."
+    prompt: str = (
+        "You are a helpful assistant. "
+        "Describe this image concisely in a single, brief, engaging caption. "
+        'Respond with a JSON object containing a single key "Caption" with your caption text. '
+        "Do not output anything else."
+    )
 
 
 def load_config() -> Config:
