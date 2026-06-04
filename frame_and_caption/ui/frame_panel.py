@@ -74,12 +74,19 @@ class FramePanel(ctk.CTkFrame):
         self._headline_entry.pack(fill="x", padx=8, pady=(0, 4))
         self._headline_entry.bind("<KeyRelease>", lambda e: self._notify())
 
-        self._font_size_label = ctk.CTkLabel(self, text="Font Size:", font=ctk.CTkFont(size=11))
+        self._font_size_label = ctk.CTkLabel(self, text="Headline Font Size:", font=ctk.CTkFont(size=11))
         self._font_size_label.pack(anchor="w", padx=8)
         self._font_size_entry = ctk.CTkEntry(self, placeholder_text="36")
-        self._font_size_entry.pack(fill="x", padx=8, pady=(0, 8))
+        self._font_size_entry.pack(fill="x", padx=8, pady=(0, 4))
         self._font_size_entry.insert(0, "36")
         self._font_size_entry.bind("<KeyRelease>", lambda e: self._notify())
+
+        self._caption_font_size_label = ctk.CTkLabel(self, text="Caption Font Size:", font=ctk.CTkFont(size=11))
+        self._caption_font_size_label.pack(anchor="w", padx=8)
+        self._caption_font_size_entry = ctk.CTkEntry(self, placeholder_text="32")
+        self._caption_font_size_entry.pack(fill="x", padx=8, pady=(0, 8))
+        self._caption_font_size_entry.insert(0, "32")
+        self._caption_font_size_entry.bind("<KeyRelease>", lambda e: self._notify())
 
     def _on_gradient_toggle(self):
         self._gradient_enabled = self._gradient_toggle.get() == 1
@@ -125,17 +132,23 @@ class FramePanel(ctk.CTkFrame):
             font_size = int(self._font_size_entry.get().strip())
         except ValueError:
             font_size = 36
+        try:
+            caption_font_size = int(self._caption_font_size_entry.get().strip())
+        except ValueError:
+            caption_font_size = 32
         return {
             "color": self._current_color,
             "thickness": thickness,
             "headline": self._headline_entry.get().strip(),
             "font_size": font_size,
+            "caption_font_size": caption_font_size,
             "gradient_enabled": self._gradient_enabled,
             "gradient_color2": self._current_color2,
             "gradient_direction": self._direction_menu.get(),
         }
 
     def set_values(self, color, thickness, headline, font_size,
+                   caption_font_size=32,
                    gradient_enabled=False, gradient_color2="#e94560",
                    gradient_direction="horizontal"):
         self._current_color = color
@@ -147,6 +160,8 @@ class FramePanel(ctk.CTkFrame):
         self._headline_entry.insert(0, headline)
         self._font_size_entry.delete(0, "end")
         self._font_size_entry.insert(0, str(font_size))
+        self._caption_font_size_entry.delete(0, "end")
+        self._caption_font_size_entry.insert(0, str(caption_font_size))
 
         self._current_color2 = gradient_color2
         self._color2_swatch.configure(fg_color=gradient_color2)
