@@ -20,6 +20,7 @@ class FrameConfig:
     thickness: int = 80
     headline: str = ""
     font_size: int = 36
+    caption_font_size: int = 32
     gradient_enabled: bool = False
     gradient_color2: str = "#e94560"
     gradient_direction: str = "horizontal"
@@ -50,6 +51,7 @@ def load_config() -> Config:
                     thickness=frame_data.get("thickness", FrameConfig.thickness),
                     headline=frame_data.get("headline", FrameConfig.headline),
                     font_size=frame_data.get("font_size", FrameConfig.font_size),
+                    caption_font_size=frame_data.get("caption_font_size", FrameConfig.caption_font_size),
                     gradient_enabled=frame_data.get("gradient_enabled", FrameConfig.gradient_enabled),
                     gradient_color2=frame_data.get("gradient_color2", FrameConfig.gradient_color2),
                     gradient_direction=frame_data.get("gradient_direction", FrameConfig.gradient_direction),
@@ -75,6 +77,7 @@ def save_config(config: Config) -> None:
             "thickness": config.frame.thickness,
             "headline": config.frame.headline,
             "font_size": config.frame.font_size,
+            "caption_font_size": config.frame.caption_font_size,
             "gradient_enabled": config.frame.gradient_enabled,
             "gradient_color2": config.frame.gradient_color2,
             "gradient_direction": config.frame.gradient_direction,

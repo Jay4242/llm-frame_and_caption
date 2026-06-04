@@ -132,8 +132,7 @@ def add_frame_and_caption(
         _draw_text_in_band(draw, headline, font, total_w, 0, t, "white")
 
     if caption.strip():
-        caption_font_size = max(16, frame_config.font_size - 4)
-        caption_font = _find_font(caption_font_size)
+        caption_font = _find_font(frame_config.caption_font_size)
         _draw_text_in_band(
             draw, caption, caption_font, total_w, total_h - t, total_h, "white"
         )
